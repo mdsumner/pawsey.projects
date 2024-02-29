@@ -1,0 +1,83 @@
+#!/bin/bash -l
+# Allocate slurm resources, edit as necessary
+#SBATCH --account=pawsey0973
+# Here we request the appropriate GPU partition on a system
+#SBATCH --partition=work
+# Since jupyterlab is not mpi enabled, we just use one task
+#SBATCH --ntasks=1
+#SBATCH --mem=20GB
+#SBATCH --time=02:00:00
+#SBATCH --job-name=jupyter_notebook
+#SBATCH --export=NONE
+ 
+# Set our working directory
+# This is the directory we'll mount to /home/jovyan in the container
+# Should be in a writable path with some space, like /scratch
+jupyterDir="${MYSCRATCH}/jupyter-dir"
+ 
+# Set the image and tag we want to use
+image="docker://pangeo/pangeo-notebook:latest"
+ 
+# You should not need to edit the lines below
+ 
+# Prepare the working directory
+mkdir -p ${jupyterDir}
+cd ${jupyterDir}
+ 
+# Get the image filename
+imagename=${image##*/}
+imagename=${imagename/:/_}.sif
+ 
+# Get the hostname
+# We'll set up an SSH tunnel to connect to the Juypter notebook server
+host=$(hostname)
+ 
+# Set the port for the SSH tunnel
+# This part of the script uses a loop to search for available ports on the node;
+# this will allow multiple instances of GUI servers to be run from the same host node
+port="8888"
+pfound="0"
+while [ $port -lt 65535 ] ; do
+  check=$( ss -tuna | awk '{print $4}' | grep ":$port *" )
+  if [ "$check" == "" ] ; then
+    pfound="1"
+    break
+  fi
+  : $((++port))
+done
+if [ $pfound -eq 0 ] ; then
+  echo "No available communication port found to establish the SSH tunnel."
+  echo "Try again later. Exiting."
+  exit
+fi
+ 
+# Load Singularity
+module load singularity/3.11.4-nompi
+ 
+# Pull our image in a folder
+singularity pull $imagename $image
+ 
+echo "*****************************************************"
+echo "Setup - from your laptop do:"
+echo "ssh -N -f -L ${port}:${host}:${port} $USER@$PAWSEY_CLUSTER.pawsey.org.au"
+echo "*****"
+echo "The launch directory is: $jupyterDir"
+echo "*****************************************************"
+echo ""
+echo "*****************************************************"
+echo "Terminate - from your laptop do:"
+echo "kill \$( ps x | grep 'ssh.*-L *${port}:${host}:${port}' | awk '{print \$1}' )"
+echo "*****************************************************"
+echo ""
+  
+# Launch our container
+# and mount our working directory to /home/jovyan in the container
+# and bind the run time directory to our home directory
+singularity exec -C \
+  -B ${jupyterDir}:/home/joyvan \
+  -B ${jupyterDir}:${HOME} \
+  ${imagename} \
+  jupyter notebook \
+  --no-browser \
+  --port=${port} --ip=0.0.0.0 \
+  --notebook-dir=${jupyterDir}

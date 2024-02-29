@@ -1,0 +1,91 @@
+
+R version 4.2.2 (2022-10-31) -- "Innocent and Trusting"
+Copyright (C) 2022 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> 
+> print("nworkers: ")
+[1] "nworkers: "
+> print(length(parallelly::availableWorkers()))
+[1] 1
+> 
+> library(curl)
+Using libcurl 7.79.1 with OpenSSL/1.1.1l-fips
+> library(arrow)
+Some features are not enabled in this build of Arrow. Run `arrow_info()` for more information.
+
+Attaching package: ‘arrow’
+
+The following object is masked from ‘package:utils’:
+
+    timestamp
+
+> library(furrr)
+Loading required package: future
+> library(stringr)
+> 
+> oisst <- read_parquet("https://github.com/mdsumner/trend.oisst/raw/main/oisstfiles.parquet")
+> 
+> dsn <- gsub("///", "//", oisst$dsn)
+> url <- str_extract(dsn, "https.*nc")
+> 
+> 
+> dir <- file.path(Sys.getenv("MYSCRATCH"), "oisst")
+> 
+> dl <- function(x) {
++   curl_download(x, file.path(dir, basename(x)))
++ }
+> 
+> future_map(url[1:10], dl)
+[[1]]
+[1] "/scratch/pawsey0973/mdsumner/oisst/oisst-avhrr-v02r01.19810901.nc"
+
+[[2]]
+[1] "/scratch/pawsey0973/mdsumner/oisst/oisst-avhrr-v02r01.19810902.nc"
+
+[[3]]
+[1] "/scratch/pawsey0973/mdsumner/oisst/oisst-avhrr-v02r01.19810903.nc"
+
+[[4]]
+[1] "/scratch/pawsey0973/mdsumner/oisst/oisst-avhrr-v02r01.19810904.nc"
+
+[[5]]
+[1] "/scratch/pawsey0973/mdsumner/oisst/oisst-avhrr-v02r01.19810905.nc"
+
+[[6]]
+[1] "/scratch/pawsey0973/mdsumner/oisst/oisst-avhrr-v02r01.19810906.nc"
+
+[[7]]
+[1] "/scratch/pawsey0973/mdsumner/oisst/oisst-avhrr-v02r01.19810907.nc"
+
+[[8]]
+[1] "/scratch/pawsey0973/mdsumner/oisst/oisst-avhrr-v02r01.19810908.nc"
+
+[[9]]
+[1] "/scratch/pawsey0973/mdsumner/oisst/oisst-avhrr-v02r01.19810909.nc"
+
+[[10]]
+[1] "/scratch/pawsey0973/mdsumner/oisst/oisst-avhrr-v02r01.19810910.nc"
+
+> print("done")
+[1] "done"
+> 
+>  
+> 
+> proc.time()
+   user  system elapsed 
+  0.791   0.217 107.148 

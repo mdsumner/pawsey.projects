@@ -1,0 +1,62 @@
+
+R version 4.3.2 (2023-10-31) -- "Eye Holes"
+Copyright (C) 2023 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> 
+> .libPaths("/software/projects/pawsey0973/mdsumner/setonix/r/4.3")
+> 
+> print("nworkers: ")
+[1] "nworkers: "
+> print(parallelly::availableWorkers())
+ [1] "nid002030" "nid002030" "nid002030" "nid002030" "nid002030" "nid002030"
+ [7] "nid002030" "nid002030" "nid002030" "nid002030" "nid002030" "nid002030"
+[13] "nid002030" "nid002030" "nid002030" "nid002030" "nid002030" "nid002030"
+[19] "nid002030" "nid002030" "nid002030" "nid002030" "nid002030" "nid002030"
+[25] "nid002030" "nid002030" "nid002030" "nid002030" "nid002030" "nid002030"
+[31] "nid002030" "nid002030" "nid002030" "nid002030" "nid002030" "nid002030"
+[37] "nid002030" "nid002030" "nid002030" "nid002030" "nid002030" "nid002030"
+[43] "nid002030" "nid002030" "nid002030" "nid002030" "nid002030" "nid002030"
+> 
+> library(arrow)
+
+Attaching package: ‘arrow’
+
+The following object is masked from ‘package:utils’:
+
+    timestamp
+
+> 
+> library(vapour)
+> oisst <- read_parquet("https://github.com/mdsumner/trend.oisst/raw/main/oisstfiles.parquet")
+> 
+> options(future.rng.onMisuse = "ignore")
+> 
+> library(furrr)
+Loading required package: future
+> plan(multisession)
+> print(system.time(l <- future_map(oisst$dsn[2001:2048], vapour_raster_info)))
+    user   system  elapsed 
+   8.830    0.304 1179.910 
+> 
+> plan(sequential)
+> 
+> 
+> 
+> proc.time()
+    user   system  elapsed 
+   9.592    1.463 1182.660 

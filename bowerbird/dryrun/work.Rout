@@ -1,0 +1,67 @@
+
+R version 4.3.2 (2023-10-31) -- "Eye Holes"
+Copyright (C) 2023 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> library(bowerbird)
+> my_directory <- file.path(Sys.getenv("MYSCRATCH"), "data/bowerbird")
+> #my_directory <- "/scratch/pawsey0973/mdsumner/data/bowerbird"
+> 
+> cf <- bb_config(local_file_root = my_directory)
+> 
+> 
+> oisst <-    bb_source(
++                          name = "NCI Thredds",
++                          id = "nci123",
++                          description = "All NCI files",
++                          doc_url = "",
++                          citation = "",
++                          #source_url = "https://dapds00.nci.org.au/thredds/catalog.html",
++                          source_url = "https://dapds00.nci.org.au/thredds/catalogs/zv2/catalog.html", 
++                          license = "Please cite",
++                          method = list("bb_handler_rget", level = 18, dry_run = T, accept_follow = ".*fileServer/.*"), 
++                          postprocess = NULL,
++                          access_function = "",
++                          collection_size = 2000,
++                          data_group = "thredds links")
+> 
+> cf <- bb_add(cf, oisst)
+> status <- bb_sync(cf, verbose = TRUE)
+
+Wed Feb 21 05:21:53 2024
+Synchronizing dataset: NCI Thredds
+Source URL https://dapds00.nci.org.au/thredds/catalogs/zv2/catalog.html
+--------------------------------------------------------------------------------------------
+
+ this dataset path is: /scratch/pawsey0973/mdsumner/data/bowerbird/dapds00.nci.org.au/thredds/catalogs/zv2
+ visiting https://dapds00.nci.org.au/thredds/catalogs/zv2/catalog.html ... 
+  |                                                                              |                                                                      |   0%  |                                                                              |======================================================================| 100%
+
+ 0 download links, 0 links to visit done.
+
+Wed Feb 21 05:21:53 2024 dataset synchronization complete: NCI Thredds
+> 
+> saveRDS(status, "status.rds")
+> 
+> 
+> 
+> 
+> 
+> 
+> proc.time()
+   user  system elapsed 
+  1.328   1.003   2.916 

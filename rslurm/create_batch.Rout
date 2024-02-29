@@ -1,0 +1,59 @@
+
+R version 4.2.2 (2022-10-31) -- "Innocent and Trusting"
+Copyright (C) 2022 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> library(curl)
+Using libcurl 7.79.1 with OpenSSL/1.1.1l-fips
+> library(arrow)
+Some features are not enabled in this build of Arrow. Run `arrow_info()` for more information.
+
+Attaching package: ‘arrow’
+
+The following object is masked from ‘package:utils’:
+
+    timestamp
+
+> library(stringr)
+> library(rslurm, lib.loc = file.path(Sys.getenv("MYSCRATCH"), "Rlib"))
+> 
+> 
+> oisst <- read_parquet("https://github.com/mdsumner/trend.oisst/raw/main/oisstfiles.parquet")
+> 
+> 
+> pars <- data.frame(dsn =  gsub("https:///", "https://", oisst$dsn))
+> 
+> calcfun <- function(dsn) {
++   tres <- c(25000L, 25000L)
++   ex <- c(-12775000, 12775000, -12700000, 12700000)
++ 
++   opts <-c("-multi", "-wo", "NUM_THREADS=ALL_CPUS")
++   crs <- "PROJCS[\"unknown\",GEOGCS[\"unknown\",DATUM[\"WGS_1984\",SPHEROID[\"WGS 84\",6378137,298.257223563,AUTHORITY[\"EPSG\",\"7030\"]],AUTHORITY[\"EPSG\",\"6326\"]],PRIMEM[\"Greenwich\",0,AUTHORITY[\"EPSG\",\"8901\"]],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]]],PROJECTION[\"Lambert_Azimuthal_Equal_Area\"],PARAMETER[\"latitude_of_center\",0],PARAMETER[\"longitude_of_center\",0],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1,AUTHORITY[\"EPSG\",\"9001\"]],AXIS[\"Easting\",EAST],AXIS[\"Northing\",NORTH]]"
++   mean(vapour::gdal_raster_data(dsn, target_res = tres, target_crs = crs, target_ext = ex, resample = "average", options = opts)[[1]], na.rm = TRUE)
++ }
+> 
+> 
+> library(rslurm)
+> sjob <- slurm_apply(calcfun, pars, jobname = 'trend_oisst',
++                     nodes = 8, cpus_per_node = 128, submit = FALSE, pkgs = NULL)
+Submission scripts output in directory _rslurm_trend_oisst 
+> 
+> proc.time()
+   user  system elapsed 
+  0.793   0.100  10.734 

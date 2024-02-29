@@ -1,0 +1,6 @@
+.future/
+*.rds
+*.RDS
+*.out
+*.RData
+
